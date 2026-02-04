@@ -1,7 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Shield, ChevronRight, Activity } from 'lucide-react';
+import { Zap, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+// Set your YouTube video ID here (e.g. from https://www.youtube.com/watch?v=VIDEO_ID)
+const HERO_VIDEO_ID = import.meta.env.VITE_HERO_VIDEO_ID || '';
 
 const Hero = () => {
   return (
@@ -43,20 +46,27 @@ const Hero = () => {
           </div>
         </motion.div>
 
-        {/* Mockup Preview */}
+        {/* Embedded video */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.2 }}
           className="mt-20 relative"
         >
-          <div className="relative mx-auto max-w-5xl rounded-2xl border border-slate-800 bg-slate-900/50 p-2 backdrop-blur-sm shadow-2xl">
-            <div className="rounded-xl border border-slate-800 overflow-hidden bg-slate-950 aspect-[16/9] flex items-center justify-center">
-              <div className="text-center p-8">
-                <Activity className="w-16 h-16 text-blue-500 mx-auto mb-4 animate-pulse" />
-                <p className="text-slate-500 font-mono">NETCASTER_CORE_SYSTEM_ACTIVE...</p>
+          <div className="relative mx-auto max-w-4xl rounded-2xl border border-slate-800 bg-slate-900/50 overflow-hidden shadow-2xl aspect-video">
+            {HERO_VIDEO_ID ? (
+              <iframe
+                title="NetCaster showcase"
+                src={`https://www.youtube.com/embed/${HERO_VIDEO_ID}?rel=0`}
+                className="absolute inset-0 w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-slate-800/80 text-slate-500">
+                <p className="text-sm">Add VITE_HERO_VIDEO_ID to .env or set HERO_VIDEO_ID in Hero.jsx to show your video.</p>
               </div>
-            </div>
+            )}
           </div>
         </motion.div>
       </div>
