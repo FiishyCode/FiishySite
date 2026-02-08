@@ -4,7 +4,7 @@ const checkoutHttpUrl = import.meta.env.VITE_CHECKOUT_HTTP_URL || 'https://creat
 
 /**
  * Start Stripe Checkout for the current user via HTTP endpoint (CORS-enabled for localhost).
- * productId: 'netcaster' | 'duckruns'. On success Stripe redirects back and webhook updates Firestore.
+ * productId: 'netcaster' | 'duckruns'. On success Stripe redirects back.
  */
 export async function redirectToStripeCheckout(productId = 'netcaster') {
   const user = auth.currentUser;

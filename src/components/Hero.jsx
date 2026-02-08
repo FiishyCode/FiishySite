@@ -51,7 +51,7 @@ const Hero = () => {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.2 }}
-          className="mt-20 relative"
+          className="hidden mt-20 relative"
         >
           <div className="relative mx-auto max-w-4xl rounded-2xl border border-slate-800 bg-slate-900/50 overflow-hidden shadow-2xl aspect-video">
             {HERO_VIDEO_ID ? (

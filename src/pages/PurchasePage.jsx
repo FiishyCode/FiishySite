@@ -54,7 +54,7 @@ const PurchasePage = () => {
             if (data.duckRunsLicenses && Array.isArray(data.duckRunsLicenses) && data.duckRunsLicenses.length > 0) {
               data.duckRunsLicenses.forEach((entry) => {
                 history.push({
-                  productName: 'Duck Runs',
+                  productName: 'Ducks $5/1m',
                   key: entry.licenseKey || '',
                   date: entry.purchaseDate ? new Date(entry.purchaseDate).toLocaleDateString() : new Date().toLocaleDateString(),
                   status: 'Active'
@@ -63,7 +63,7 @@ const PurchasePage = () => {
             }
             if (data.purchasedDuckRuns && data.licenseKeyDuckRuns && (!data.duckRunsLicenses || data.duckRunsLicenses.length === 0)) {
               history.push({
-                productName: 'Duck Runs',
+                productName: 'Ducks $5/1m',
                 key: data.licenseKeyDuckRuns,
                 date: data.purchaseDateDuckRuns ? new Date(data.purchaseDateDuckRuns).toLocaleDateString() : new Date().toLocaleDateString(),
                 status: 'Active'
@@ -131,6 +131,9 @@ const PurchasePage = () => {
     try {
       localStorage.removeItem(`purchased_${user.uid}`);
       localStorage.removeItem(`key_${user.uid}`);
+      const userSnap = await getDoc(doc(db, 'users', user.uid));
+      const existingRole = userSnap.exists ? userSnap.data().role : null;
+      const role = existingRole === 'admin' ? 'admin' : 'customer';
       await setDoc(doc(db, 'users', user.uid), {
         purchased: false,
         licenseKey: null,
@@ -138,7 +141,8 @@ const PurchasePage = () => {
         purchasedDuckRuns: false,
         duckRunsLicenses: [],
         licenseKeyDuckRuns: null,
-        purchaseDateDuckRuns: null
+        purchaseDateDuckRuns: null,
+        role
       }, { merge: true });
       setHasPurchased(false);
       setPurchaseHistory([]);
@@ -185,11 +189,15 @@ const PurchasePage = () => {
       status: 'Active'
     }]);
     try {
+      const userSnap = await getDoc(doc(db, 'users', user.uid));
+      const existingRole = userSnap.exists ? userSnap.data().role : null;
+      const role = existingRole === 'admin' ? 'admin' : 'holder';
       await setDoc(doc(db, 'users', user.uid), {
         purchased: true,
         purchaseDate: purchaseDate,
         licenseKey: newKey,
-        email: user.email
+        email: user.email,
+        role
       }, { merge: true });
     } catch (e) {
       console.error("Firestore update failed:", e);
@@ -259,7 +267,7 @@ const PurchasePage = () => {
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-slate-500">Version</span>
-                        <span className="text-white font-mono">v4.2.0</span>
+                        <span className="text-white font-mono">1.0</span>
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-slate-500">Type</span>
@@ -270,7 +278,7 @@ const PurchasePage = () => {
                     <button 
                       onClick={resetTestAccount}
                       disabled={loading}
-                      className="w-full mt-6 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded-lg border border-red-500/20 transition-all"
+                      className="hidden w-full mt-6 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded-lg border border-red-500/20 transition-all"
                     >
                       Reset License (Test Only)
                     </button>
@@ -317,9 +325,9 @@ const PurchasePage = () => {
                         <tr key={index} className="hover:bg-slate-800/50 transition-colors">
                           <td className="px-6 py-4">
                             <div className="font-bold text-white">{item.productName}</div>
-                            <div className="text-xs text-slate-500">{item.productName === 'Duck Runs' ? 'Single use access' : 'Lifetime Access'}</div>
+                            <div className="text-xs text-slate-500">{item.productName === 'Ducks $5/1m' ? 'Per 1m worth of ducks' : 'Lifetime Access'}</div>
                           </td>
-                          <td className="px-6 py-4 font-mono text-sm text-blue-400">{item.productName === 'Duck Runs' ? '—' : item.key}</td>
+                          <td className="px-6 py-4 font-mono text-sm text-blue-400">{item.productName === 'Ducks $5/1m' ? '—' : item.key}</td>
                           <td className="px-6 py-4 text-sm text-slate-400">{item.date}</td>
                           <td className="px-6 py-4">
                             <span className="px-2 py-1 bg-green-500/10 text-green-400 rounded text-[10px] font-bold uppercase tracking-wider">
@@ -347,7 +355,7 @@ const PurchasePage = () => {
                       </div>
                       <div>
                         <h3 className="font-bold text-white text-lg">NetCaster Arc Raiders Lifetime</h3>
-                        <p className="text-slate-400 text-sm">$25.00 · One-time</p>
+                        <p className="text-slate-400 text-sm">$40.00 · One-time</p>
                       </div>
                     </div>
                     {purchaseHistory.some((i) => i.productName === 'NetCaster Arc Raiders') ? (
@@ -356,26 +364,28 @@ const PurchasePage = () => {
                       <button
                         onClick={() => handleStripePurchase('netcaster')}
                         disabled={loading}
-                        className="py-3 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm disabled:opacity-50"
+                        className="hidden py-3 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm disabled:opacity-50"
                       >
                         {loading ? 'Redirecting...' : 'Purchase via Stripe'}
                       </button>
                     )}
                   </div>
-                  <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-between flex-wrap gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-amber-600/20 rounded-xl flex items-center justify-center">
+                  <div className="relative p-6 rounded-2xl flex items-center justify-between flex-wrap gap-4 overflow-hidden border border-slate-800">
+                    <div className="absolute inset-0 bg-cover opacity-30" style={{ backgroundImage: "url('https://images.squarespace-cdn.com/content/v1/5f5a3ad1b3aa75691878d2a5/fec7d2f1-d235-48ed-95e6-8f776b9d4cb1/arc-raiders-1+%2824%29.webp?format=1500w')", backgroundPosition: 'center 15%' }} />
+                    <div className="absolute inset-0 bg-slate-900/80" />
+                    <div className="relative flex items-center gap-4">
+                      <div className="w-12 h-12 bg-amber-600 rounded-xl flex items-center justify-center">
                         <Zap className="w-6 h-6 text-amber-500" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-white text-lg">Duck Runs</h3>
-                        <p className="text-slate-400 text-sm">$5.00 · Purchase anytime</p>
+                        <h3 className="font-bold text-white text-lg">Ducks $5/1m</h3>
+                        <p className="text-slate-400 text-sm">1m worth of ducks per $5 (in-game currency)</p>
                       </div>
                     </div>
                     <button
                       onClick={() => handleStripePurchase('duckruns')}
                       disabled={loading}
-                      className="py-3 px-5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-sm disabled:opacity-50"
+                      className="relative hidden py-3 px-5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-sm disabled:opacity-50"
                     >
                       {loading ? 'Redirecting...' : 'Purchase via Stripe'}
                     </button>
@@ -411,13 +421,13 @@ const PurchasePage = () => {
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <div className="text-2xl font-bold text-white">$25.00</div>
+                          <div className="text-2xl font-bold text-white">$40.00</div>
                           <div className="text-slate-500 text-xs">One-time payment</div>
                         </div>
                         <button 
                           onClick={() => handleStripePurchase('netcaster')}
                           disabled={loading}
-                          className="py-3 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50"
+                          className="hidden py-3 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50"
                         >
                           {loading ? "Redirecting..." : "Purchase via Stripe"}
                           {!loading && <ArrowRight className="w-4 h-4" />}
@@ -425,25 +435,27 @@ const PurchasePage = () => {
                       </div>
                     </div>
 
-                    <div className="p-6 bg-slate-950 border-2 border-amber-500/50 rounded-2xl flex items-center justify-between flex-wrap gap-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-amber-600/20 rounded-xl flex items-center justify-center">
+                    <div className="relative p-6 rounded-2xl flex items-center justify-between flex-wrap gap-4 overflow-hidden border-2 border-amber-500/50">
+                      <div className="absolute inset-0 bg-cover opacity-30" style={{ backgroundImage: "url('https://images.squarespace-cdn.com/content/v1/5f5a3ad1b3aa75691878d2a5/fec7d2f1-d235-48ed-95e6-8f776b9d4cb1/arc-raiders-1+%2824%29.webp?format=1500w')", backgroundPosition: 'center 15%' }} />
+                      <div className="absolute inset-0 bg-slate-950/85" />
+                      <div className="relative flex items-center gap-4">
+                        <div className="w-12 h-12 bg-amber-600 rounded-xl flex items-center justify-center">
                           <Zap className="w-6 h-6 text-amber-500" />
                         </div>
                         <div>
-                          <h3 className="font-bold text-white text-lg">Duck Runs</h3>
-                          <p className="text-slate-400 text-sm">Single use access · Purchase as many times as you need</p>
+                          <h3 className="font-bold text-white text-lg">Ducks $5/1m</h3>
+                          <p className="text-slate-400 text-sm">1m worth of ducks per $5 · RMT for in-game currency</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
+                      <div className="relative flex items-center gap-4">
                         <div className="text-right">
                           <div className="text-2xl font-bold text-white">$5.00</div>
-                          <div className="text-slate-500 text-xs">Per purchase</div>
+                          <div className="text-slate-500 text-xs">Per 1m worth of ducks</div>
                         </div>
                         <button 
                           onClick={() => handleStripePurchase('duckruns')}
                           disabled={loading}
-                          className="py-3 px-5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50"
+                          className="hidden py-3 px-5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-sm transition-all flex items-center gap-2 disabled:opacity-50"
                         >
                           {loading ? "Redirecting..." : "Purchase via Stripe"}
                           {!loading && <ArrowRight className="w-4 h-4" />}
@@ -456,17 +468,22 @@ const PurchasePage = () => {
                     {checkoutError && (
                       <p className="text-red-400 text-sm text-center">{checkoutError}</p>
                     )}
-                    <div className="flex items-center justify-center gap-6 text-slate-500">
-                      <span className="flex items-center gap-1 text-xs uppercase tracking-widest font-bold">
-                        <Shield className="w-4 h-4 text-green-500" />
-                        Secure Checkout
-                      </span>
-                    </div>
+                    <p className="text-center text-slate-400">
+                      <a
+                        href={DISCORD_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
+                      >
+                        Join Discord
+                      </a>
+                      {' '}to reach out to an admin about how to purchase.
+                    </p>
                     <button 
                       type="button"
                       onClick={handleSimulatedPurchase}
                       disabled={loading}
-                      className="w-full py-2 text-slate-500 hover:text-slate-400 text-xs font-bold border border-slate-700 rounded-lg transition-all"
+                      className="hidden w-full py-2 text-slate-500 hover:text-slate-400 text-xs font-bold border border-slate-700 rounded-lg transition-all"
                     >
                       Test purchase NetCaster (simulated, no Stripe)
                     </button>

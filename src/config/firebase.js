@@ -17,6 +17,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+export const functionsBaseUrl =
+  typeof window !== 'undefined' && import.meta.env.DEV && import.meta.env.VITE_USE_FUNCTIONS_EMULATOR === 'true'
+    ? `http://localhost:5001/${firebaseConfig.projectId}/us-central1`
+    : `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net`;
 export const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
   useFetchStreams: false,
@@ -30,5 +34,8 @@ if (typeof window !== "undefined" && import.meta.env.DEV && import.meta.env.VITE
   connectFunctionsEmulator(functions, "localhost", 5001);
 }
 export const createCheckoutSession = httpsCallable(functions, "createCheckoutSession");
+export const getNetcasterLicenses = httpsCallable(functions, "getNetcasterLicenses");
+export const bootstrapAdmin = httpsCallable(functions, "bootstrapAdmin");
+export const setUserPurchased = httpsCallable(functions, "setUserPurchased");
 
 export default app;
